@@ -4,6 +4,11 @@ body {
     color: #f8fafc;
     margin: 0;
     padding: 1rem;
+    /* Zorgt voor veilige marges rondom de notch en home-indicator op iPhone */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 .container {
@@ -27,9 +32,13 @@ h1 {
 }
 
 .table-wrapper {
-    overflow-x: visible;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     max-height: 75vh;
     overflow-y: auto;
+    border-radius: 8px;
+    /* Subtiel schaduwtje zodat je ziet dat je horizontaal kunt scrollen op smalle schermen */
+    box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.5);
 }
 
 table {
@@ -121,4 +130,52 @@ tr:hover {
 
 .sparkline-path.negatief {
     stroke: #f87171;
+}
+
+/* ========================================= */
+/* MOBIELE OPTIMALISATIES                    */
+/* ========================================= */
+
+/* Portretmodus op smartphones */
+@media (max-width: 768px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    .container {
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+
+    h1 {
+        font-size: 1.3rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    th, td {
+        padding: 6px 5px;
+        font-size: 0.75rem;
+    }
+
+    .sparkline {
+        width: 60px;
+        height: 24px;
+    }
+}
+
+/* Landschapmodus (telefoon horizontaal gedraaid) of brede mobiele schermen */
+@media (min-width: 500px) and (max-width: 900px) {
+    th, td {
+        padding: 6px 6px;
+        font-size: 0.8rem;
+    }
+
+    .sparkline {
+        width: 75px;
+        height: 26px;
+    }
 }
