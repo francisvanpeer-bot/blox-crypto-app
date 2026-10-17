@@ -70,6 +70,7 @@ h1 {
     overflow-y: auto;
     border-radius: 8px;
     box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.5);
+    position: relative; /* Belangrijk voor het vastzetten van kolommen */
 }
 
 table {
@@ -87,6 +88,14 @@ th {
     color: #38bdf8;
     font-weight: 600;
     z-index: 10;
+    white-space: normal;
+    vertical-align: bottom;
+}
+
+.score-subtext {
+    font-size: 0.7rem;
+    font-weight: normal;
+    color: #94a3b8;
 }
 
 th, td {
@@ -95,7 +104,45 @@ th, td {
     vertical-align: middle;
 }
 
+/* === VASTGEZETTE KOLOM 1: RANG === */
+th:nth-child(1), td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: #1e293b;
+}
+
+th:nth-child(1) {
+    background-color: #0f172a;
+    z-index: 20;
+}
+
+/* === VASTGEZETTE KOLOM 2: NAAM === */
+th:nth-child(2), td:nth-child(2) {
+    position: sticky;
+    left: 45px; /* Breedte van de Rang-kolom */
+    z-index: 5;
+    background-color: #1e293b;
+    max-width: 110px;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.25;
+    box-shadow: 4px 0 5px -2px rgba(0, 0, 0, 0.3); /* Subtiele schaduwrand voor de scheiding */
+}
+
+th:nth-child(2) {
+    background-color: #0f172a;
+    z-index: 20;
+    box-shadow: 4px 0 5px -2px rgba(0, 0, 0, 0.3);
+}
+
 tr:hover {
+    background-color: #334155;
+}
+
+/* Zorg dat de vaste kolommen hun achtergrond behouden bij een hover over de rij */
+tr:hover td:nth-child(1),
+tr:hover td:nth-child(2) {
     background-color: #334155;
 }
 
@@ -202,6 +249,10 @@ tr:hover {
     th, td {
         padding: 5px 6px;
         font-size: 0.78rem;
+    }
+
+    th:nth-child(2), td:nth-child(2) {
+        max-width: 100px;
     }
 
     .sparkline {

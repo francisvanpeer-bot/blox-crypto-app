@@ -165,8 +165,18 @@ async function laadEchteData() {
             const score = berekenScore(change1h, change24h, volume, marketCap, hoogsteMarketCap);
 
             let naam = munt.name;
-            if (naam.includes('BlackRock USD Institutional Digital Liquidity Fund')) {
+            
+            // Bekende lange namen inkorten voor een strakkere weergave op mobiel
+            if (naam.includes('BlackRock')) {
                 naam = 'BlackRock';
+            } else if (naam.toLowerCase() === 'aerodrome finance') {
+                naam = 'Aerodrome';
+            } else if (naam.toLowerCase() === 'internet computer') {
+                naam = 'Internet Comp.';
+            } else if (naam.toLowerCase() === 'artificial superintelligence alliance') {
+                naam = 'FET / ASI';
+            } else if (naam.toLowerCase() === 'avalanche') {
+                naam = 'Avalanche';
             }
 
             return {
