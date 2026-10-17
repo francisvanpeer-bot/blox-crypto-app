@@ -1,12 +1,39 @@
 const tabelBody = document.getElementById('crypto-tabel-body');
+const currencyBtn = document.getElementById('currency-btn');
+const thPrijs = document.getElementById('th-prijs');
+
+// Actieve valuta ('eur' of 'usd')
+let huidigeValuta = 'eur';
+
+function getValutaSymbool() {
+    return huidigeValuta === 'eur' ? '€' : '$';
+}
+
+function getLocale() {
+    return huidigeValuta === 'eur' ? 'nl-NL' : 'en-US';
+}
 
 function formatBedrag(waarde) {
     if (waarde === null || waarde === undefined) return 'N.B.';
     const getal = parseFloat(waarde);
-    if (getal >= 1e12) return '$' + (getal / 1e12).toFixed(2) + ' T';
-    if (getal >= 1e9) return '$' + (getal / 1e9).toFixed(2) + ' B';
-    if (getal >= 1e6) return '$' + (getal / 1e6).toFixed(2) + ' M';
-    return '$' + getal.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const symbool = getValutaSymbool();
+    
+    if (getal >= 1e12) return symbool + ' ' + (getal / 1e12).toFixed(2) + ' T';
+    if (getal >= 1e9) return symbool + ' ' + (getal / 1e9).toFixed(2) + ' B';
+    if (getal >= 1e6) return symbool + ' ' + (getal / 1e6).toFixed(2) + ' M';
+    
+    return symbool + ' ' + getal.toLocaleString(getLocale(), { maximumFractionDigits: 0 });
+}
+
+function formatPrijs(prijs) {
+    const symbool = getValutaSymbool();
+    const locale = getLocale();
+    
+    return prijs.toLocaleString(locale, {
+        style: 'currency',
+        currency: huidigeValuta.toUpperCase(),
+        maximumFractionDigits: prijs < 1 ? 4 : 2
+    });
 }
 
 function begrens(waarde, min, max) {
@@ -21,39 +48,29 @@ function berekenScore(
     hoogsteMarketCap
 ) {
     // 1. Momentum: maximaal 25 punten voor 1 uur
-    const uurScore =
-        ((begrens(uurVerandering, -5, 5) + 5) / 10) * 25;
+    const uurScore = ((begrens(uurVerandering, -5, 5) + 5) / 10) * 25;
 
     // 2. Momentum: maximaal 25 punten voor 24 uur
-    const dagScore =
-        ((begrens(dagVerandering, -20, 20) + 20) / 40) * 25;
+    const dagScore = ((begrens(dagVerandering, -20, 20) + 20) / 40) * 25;
 
     // 3. Handelsactiviteit: maximaal 25 punten
     const volumeRatio = volume / (marketCap || 1);
-    const liquiditeitScore =
-        (begrens(volumeRatio, 0, 0.20) / 0.20) * 25;
+    const liquiditeitScore = (begrens(volumeRatio, 0, 0.20) / 0.20) * 25;
 
     // 4. Marktwaarde: maximaal 10 punten.
-    // Logaritmische schaal voorkomt dat de grootste munt
-    // automatisch een overweldigend voordeel krijgt.
     const capScore = hoogsteMarketCap > 0 && marketCap > 0
-        ? 10 * Math.log1p(marketCap) /
-          Math.log1p(hoogsteMarketCap)
+        ? 10 * Math.log1p(marketCap) / Math.log1p(hoogsteMarketCap)
         : 0;
 
     // 5. Trendbevestiging: maximaal 15 punten
     let trendScore = 0;
-
     if (uurVerandering > 0 && dagVerandering > 0) {
         trendScore = 15;
     } else if (uurVerandering > 0 || dagVerandering > 0) {
         trendScore = 7.5;
     }
 
-    return Math.round(
-        uurScore + dagScore + liquiditeitScore +
-        capScore + trendScore
-    );
+    return Math.round(uurScore + dagScore + liquiditeitScore + capScore + trendScore);
 }
 
 function getScoreKlasse(score) {
@@ -85,30 +102,13 @@ function genereerSparklineSVG(prijzen, isPositief) {
 }
 
 async function laadEchteData() {
-    console.log('Top 50 live crypto-data ophalen via CoinGecko...');
+    console.log(`Top 50 live crypto-data ophalen via CoinGecko in ${huidigeValuta.toUpperCase()}...`);
 
-    // Stablecoins en tokenized fondsen willen we niet in een BLOX-overzicht
     const UITGESLOTEN_IDS = new Set([
-        'tether',
-        'usd-coin',
-        'ethena-usde',
-        'dai',
-        'world-liberty-financial-usd',
-        'usds',
-        'first-digital-usd',
-        'paypal-usd',
-        'true-usd',
-        'pax-dollar',
-        'gemini-dollar',
-        'frax',
-        'usdd',
-        'blackrock-usd-institutional-digital-liquidity-fund',
-        'usyc',
-        'circle-usyc',
-        'ondo-us-dollar-yield',
-        'usd0',
-        'tether-gold',
-        'pax-gold'
+        'tether', 'usd-coin', 'ethena-usde', 'dai', 'world-liberty-financial-usd',
+        'usds', 'first-digital-usd', 'paypal-usd', 'true-usd', 'pax-dollar',
+        'gemini-dollar', 'frax', 'usdd', 'blackrock-usd-institutional-digital-liquidity-fund',
+        'usyc', 'circle-usyc', 'ondo-us-dollar-yield', 'usd0', 'tether-gold', 'pax-gold'
     ]);
     const UITGESLOTEN_SYMBOLEN = new Set([
         'usdt', 'usdc', 'usde', 'dai', 'usd1', 'usds', 'fdusd', 'pyusd',
@@ -121,14 +121,12 @@ async function laadEchteData() {
         const naam = (munt.name || '').toLowerCase();
         if (UITGESLOTEN_IDS.has(id)) return true;
         if (UITGESLOTEN_SYMBOLEN.has(symbool)) return true;
-        if (naam.includes('blackrock')) return true;
-        if (naam.includes('usyc')) return true;
+        if (naam.includes('blackrock') || naam.includes('usyc')) return true;
         return false;
     }
 
     try {
-        // We halen 100 op, zodat er na het wegfilteren nog genoeg echte crypto's overblijven voor een top 50
-        const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=1h,24h';
+        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${huidigeValuta}&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=1h,24h`;
         
         const response = await fetch(url);
         if (!response.ok) {
@@ -137,17 +135,14 @@ async function laadEchteData() {
         
         const data = await response.json();
 
-        // Filter stablecoins en fondsen (BlackRock, USYC, USDT, USDC, ...) eruit,
-        // plus munten zonder handelsvolume
         const gefilterdeData = data.filter(
             (munt) => !isUitgesloten(munt) && (munt.total_volume || 0) > 0
         );
 
-        // Controleer of Bitcoin Cash in de lijst zit, zo niet haal hem apart op
         let heeftBCH = gefilterdeData.some(munt => munt.id === 'bitcoin-cash');
         if (!heeftBCH) {
             try {
-                const bchResponse = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin-cash&sparkline=true&price_change_percentage=1h,24h');
+                const bchResponse = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${huidigeValuta}&ids=bitcoin-cash&sparkline=true&price_change_percentage=1h,24h`);
                 const bchData = await bchResponse.json();
                 if (bchData.length > 0 && !isUitgesloten(bchData[0])) {
                     gefilterdeData.push(bchData[0]);
@@ -158,7 +153,6 @@ async function laadEchteData() {
         }
 
         const dataVoorScores = gefilterdeData;
-
         const hoogsteMarketCap = dataVoorScores[0]?.market_cap || 1;
 
         const verwerkteMunten = dataVoorScores.map((munt) => {
@@ -170,7 +164,6 @@ async function laadEchteData() {
 
             const score = berekenScore(change1h, change24h, volume, marketCap, hoogsteMarketCap);
 
-            // Kort lange fondsnamen in
             let naam = munt.name;
             if (naam.includes('BlackRock USD Institutional Digital Liquidity Fund')) {
                 naam = 'BlackRock';
@@ -189,8 +182,6 @@ async function laadEchteData() {
             };
         });
 
-        // Sorteer op berekende score (hoogste score bovenaan) en neem de top 50
-        // Bitcoin Cash moet er altijd bij staan, ook als hij op score buiten de top 50 valt
         verwerkteMunten.sort((a, b) => b.score - a.score);
         let top50 = verwerkteMunten.slice(0, 50);
 
@@ -203,7 +194,7 @@ async function laadEchteData() {
         tabelBody.innerHTML = '';
 
         top50.forEach((munt, index) => {
-            const prijsFormatted = munt.price.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: munt.price < 1 ? 4 : 2 });
+            const prijsFormatted = formatPrijs(munt.price);
             const volume = formatBedrag(munt.volume);
             const marketCap = formatBedrag(munt.cap);
             
@@ -219,7 +210,6 @@ async function laadEchteData() {
             const dagTeken = isPositiefDag ? '+' : '';
             const dagTekst = `${dagTeken}${munt.change24h.toFixed(2)}%`;
 
-            // Kleur van het lijntje volgt de 24u-trend, want de grafiek toont ook 24u
             const isPositief = isPositiefDag;
 
             let grafiekPrijzen = munt.sparkline;
@@ -242,7 +232,7 @@ async function laadEchteData() {
                 <td>${sparklineHTML}</td>
                 <td>${volume}</td>
                 <td>${marketCap}</td>
-                <td><span class="score-badge ${scoreKlasse}">${munt.score} / 100</span></td>
+                <td><span class="score-badge ${scoreKlasse}">${munt.score}</span></td>
             `;
             
             tabelBody.appendChild(rij);
@@ -254,8 +244,25 @@ async function laadEchteData() {
     }
 }
 
+// Event listener voor de valuta-wisselaar knop
+currencyBtn.addEventListener('click', () => {
+    huidigeValuta = huidigeValuta === 'eur' ? 'usd' : 'eur';
+    
+    // Update knoptekst en kolomkop
+    if (huidigeValuta === 'eur') {
+        currencyBtn.textContent = 'Valuta: € (EUR)';
+        thPrijs.textContent = 'Prijs (€)';
+    } else {
+        currencyBtn.textContent = 'Valuta: $ (USD)';
+        thPrijs.textContent = 'Prijs ($)';
+    }
+    
+    tabelBody.innerHTML = `<tr><td colspan="9" class="loading">Data herladen in ${huidigeValuta.toUpperCase()}...</td></tr>`;
+    laadEchteData();
+});
+
 // Start direct bij het laden
 laadEchteData();
 
-// Ververs de data automatisch elke 60 seconden
+// Ververs automatisch elke 60 seconden
 setInterval(laadEchteData, 60000);
