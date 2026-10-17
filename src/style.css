@@ -4,8 +4,8 @@ body {
     color: #f8fafc;
     margin: 0;
     padding: 1rem;
-    /* Zorgt voor veilige marges rondom de notch en home-indicator op iPhone */
-    padding-top: env(safe-area-inset-top);
+    /* Aangepast zodat de titel niet meer achter de tijd/statusbalk wegvalt */
+    padding-top: calc(env(safe-area-inset-top) + 1.5rem); 
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
