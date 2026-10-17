@@ -108,42 +108,41 @@ th, td {
 th:nth-child(1), td:nth-child(1) {
     position: sticky;
     left: 0;
-    z-index: 5;
-    background-color: #1e293b;
+    z-index: 10;
+    background-color: #1e293b !important; /* Dwingt een volledig dekkende achtergrond af */
 }
 
 th:nth-child(1) {
-    background-color: #0f172a;
-    z-index: 20;
+    background-color: #0f172a !important;
+    z-index: 25; /* Blijft boven scrollende data én rij-data zweven */
 }
 
 /* === VASTGEZETTE KOLOM 2: NAAM === */
 th:nth-child(2), td:nth-child(2) {
     position: sticky;
-    left: 45px; /* Breedte van de Rang-kolom */
-    z-index: 5;
-    background-color: #1e293b;
+    left: 42px; /* Naadloos aangesloten op kolom 1 om kiertjes te voorkomen */
+    z-index: 10;
+    background-color: #1e293b !important;
     max-width: 110px;
     white-space: normal;
     word-wrap: break-word;
     line-height: 1.25;
-    box-shadow: 4px 0 5px -2px rgba(0, 0, 0, 0.3); /* Subtiele schaduwrand voor de scheiding */
+    box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.5); /* Schaduwrand op de overgang naar Prijs */
 }
 
 th:nth-child(2) {
-    background-color: #0f172a;
-    z-index: 20;
-    box-shadow: 4px 0 5px -2px rgba(0, 0, 0, 0.3);
+    background-color: #0f172a !important;
+    z-index: 25;
 }
 
 tr:hover {
     background-color: #334155;
 }
 
-/* Zorg dat de vaste kolommen hun achtergrond behouden bij een hover over de rij */
+/* Zorg dat de vaste kolommen ook netjes meekleuren bij een hover over de rij */
 tr:hover td:nth-child(1),
 tr:hover td:nth-child(2) {
-    background-color: #334155;
+    background-color: #334155 !important;
 }
 
 .loading {
