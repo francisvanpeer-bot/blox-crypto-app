@@ -1,3 +1,5 @@
+import { BLOX_COINS } from './blox-coins.js';
+
 const tabelBody = document.getElementById('crypto-tabel-body');
 const currencyBtn = document.getElementById('currency-btn');
 const thPrijs = document.getElementById('th-prijs');
@@ -126,7 +128,8 @@ async function laadEchteData() {
     }
 
     try {
-        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${huidigeValuta}&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=1h,24h`;
+        // 1. Zorg dat per_page op 250 staat zodat we genoeg munten ophalen om te filteren
+        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${huidigeValuta}&order=market_cap_desc&per_page=250&page=1&sparkline=true&price_change_percentage=1h,24h`;
         
         const response = await fetch(url);
         if (!response.ok) {
@@ -135,10 +138,11 @@ async function laadEchteData() {
         
         const data = await response.json();
 
+        // 2. Pas hier de filter aan met de BLOX_COINS lijst
         const gefilterdeData = data.filter(
-            (munt) => !isUitgesloten(munt) && (munt.total_volume || 0) > 0
+            (munt) => !isUitgesloten(munt) && (munt.total_volume || 0) > 0 && BLOX_COINS.has(munt.id)
         );
-
+    
         let heeftBCH = gefilterdeData.some(munt => munt.id === 'bitcoin-cash');
         if (!heeftBCH) {
             try {
